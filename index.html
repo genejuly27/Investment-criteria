@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>7 Powers of Moat Analyzer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>7 Powers of Moat Analyzer</h1>
+        <p>
+          Enter a publicly listed company name to estimate how many of Hamilton Helmer's
+          7 powers it likely demonstrates.
+        </p>
+      </header>
+
+      <section class="panel form-panel">
+        <form id="moatForm" autocomplete="off">
+          <label for="companyInput">Public company name</label>
+          <div class="input-row">
+            <input
+              id="companyInput"
+              type="text"
+              name="company"
+              placeholder="e.g., Microsoft, Coca-Cola, Nvidia"
+              required
+            />
+            <button type="submit">Analyze</button>
+          </div>
+        </form>
+        <p class="note">
+          Note: This tool gives an educational estimate based on broad sector/keyword
+          signals and not investment advice.
+        </p>
+      </section>
+
+      <section class="panel results-panel" id="results" hidden>
+        <h2 id="companyHeading"></h2>
+        <p id="summary"></p>
+        <div class="score" aria-live="polite">
+          <span id="scoreValue">0</span>
+          <span>/ 7 powers</span>
+        </div>
+        <ul id="powerList" class="power-list"></ul>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
