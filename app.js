@@ -1,168 +1,170 @@
-const POWERS = [
-  "Scale Economies",
-  "Network Economies",
-  "Counter Positioning",
-  "Switching Costs",
-  "Branding",
-  "Cornered Resource",
-  "Process Power",
-];
-
-const COMPANY_PROFILES = {
-  microsoft: {
-    hits: ["Scale Economies", "Network Economies", "Switching Costs", "Process Power"],
-    summary: "Global software ecosystem, enterprise lock-in, and platform scale support multiple powers.",
-  },
-  apple: {
-    hits: ["Scale Economies", "Switching Costs", "Branding", "Cornered Resource"],
-    summary: "Premium brand with integrated hardware/software ecosystem and privileged supply chain access.",
-  },
-  alphabet: {
-    hits: ["Scale Economies", "Network Economies", "Branding", "Process Power"],
-    summary: "Search/data flywheel and ad platform scale reinforce durable economics.",
-  },
-  google: {
-    hits: ["Scale Economies", "Network Economies", "Branding", "Process Power"],
-    summary: "Search/data flywheel and ad platform scale reinforce durable economics.",
-  },
-  amazon: {
-    hits: ["Scale Economies", "Switching Costs", "Process Power", "Cornered Resource"],
-    summary: "Operational excellence and infrastructure scale are hard to replicate at comparable cost.",
-  },
-  nvidia: {
-    hits: ["Scale Economies", "Switching Costs", "Cornered Resource", "Process Power"],
-    summary: "AI hardware leadership with ecosystem lock-in and hard-to-match design capabilities.",
-  },
-  "coca-cola": {
-    hits: ["Branding", "Scale Economies", "Cornered Resource"],
-    summary: "Iconic global brand and distribution strength support enduring pricing power.",
-  },
-  meta: {
-    hits: ["Network Economies", "Scale Economies", "Branding"],
-    summary: "User network effects and advertiser reach reinforce each other.",
-  },
-  tesla: {
-    hits: ["Branding", "Scale Economies", "Counter Positioning", "Process Power"],
-    summary: "Direct model, manufacturing iteration speed, and brand intensity create structural advantages.",
-  },
-};
-
-const KEYWORD_RULES = [
+const FACTORS = [
   {
-    pattern: /(bank|financial|insurance|payments|visa|mastercard|exchange)/,
-    hits: ["Switching Costs", "Scale Economies", "Branding"],
-    summary: "Financial platforms often benefit from trust, scale, and customer inertia.",
+    key: "scaleEconomies",
+    label: "Scale Economies",
+    hint: "Cost advantage from size and distribution.",
+    weight: 15,
   },
   {
-    pattern: /(software|cloud|saas|systems|oracle|salesforce|adobe|sap)/,
-    hits: ["Switching Costs", "Scale Economies", "Process Power"],
-    summary: "Enterprise software usually compounds through lock-in and efficient product iteration.",
+    key: "networkEconomies",
+    label: "Network Economies",
+    hint: "Product value improves with user growth.",
+    weight: 15,
   },
   {
-    pattern: /(consumer|beverage|food|retail|nike|pepsi|unilever|procter)/,
-    hits: ["Branding", "Scale Economies"],
-    summary: "Consumer businesses can build moats around brand preference and distribution density.",
+    key: "counterPositioning",
+    label: "Counter Positioning",
+    hint: "Business model incumbents struggle to copy.",
+    weight: 10,
   },
   {
-    pattern: /(semiconductor|chip|ai|compute|data)/,
-    hits: ["Cornered Resource", "Scale Economies", "Process Power"],
-    summary: "Advanced compute firms often rely on scarce talent/IP and deep process know-how.",
+    key: "switchingCosts",
+    label: "Switching Costs",
+    hint: "Customer friction to leave is high.",
+    weight: 15,
   },
   {
-    pattern: /(social|platform|marketplace|booking|airbnb|uber)/,
-    hits: ["Network Economies", "Scale Economies", "Branding"],
-    summary: "Platforms may benefit from reinforcing participation loops between users and suppliers.",
+    key: "branding",
+    label: "Branding",
+    hint: "Trust or identity supports premium pricing.",
+    weight: 15,
+  },
+  {
+    key: "corneredResource",
+    label: "Cornered Resource",
+    hint: "Unique assets, licenses, data, or talent.",
+    weight: 15,
+  },
+  {
+    key: "processPower",
+    label: "Process Power",
+    hint: "Hard-to-copy operating know-how.",
+    weight: 15,
   },
 ];
 
-const POWER_REASONS = {
-  "Scale Economies": "Cost advantages improve as output/distribution scales.",
-  "Network Economies": "Product value rises as more participants join.",
-  "Counter Positioning": "A different model exploits incumbent constraints.",
-  "Switching Costs": "Customers face friction/risk in changing providers.",
-  Branding: "Differentiation and trust support pricing resilience.",
-  "Cornered Resource": "Access to scarce assets/talent/IP limits competition.",
-  "Process Power": "Embedded routines and know-how are difficult to copy quickly.",
+const SECTOR_BIASES = {
+  software: { switchingCosts: 1, processPower: 1 },
+  consumer: { branding: 1 },
+  industrial: { scaleEconomies: 1, processPower: 1 },
+  financial: { switchingCosts: 1, branding: 1 },
+  platform: { networkEconomies: 1, scaleEconomies: 1 },
+  semiconductor: { corneredResource: 1, processPower: 1 },
 };
 
 const form = document.querySelector("#moatForm");
-const companyInput = document.querySelector("#companyInput");
-const resultsSection = document.querySelector("#results");
+const factorGrid = document.querySelector("#factorGrid");
+const results = document.querySelector("#results");
 const companyHeading = document.querySelector("#companyHeading");
-const summary = document.querySelector("#summary");
-const scoreValue = document.querySelector("#scoreValue");
-const powerList = document.querySelector("#powerList");
+const overallSummary = document.querySelector("#overallSummary");
+const moatScore = document.querySelector("#moatScore");
+const moatTier = document.querySelector("#moatTier");
+const powersList = document.querySelector("#powersList");
+const risksList = document.querySelector("#risksList");
+const questionsList = document.querySelector("#questionsList");
 
-function normalizeName(name) {
-  return name.trim().toLowerCase();
-}
-
-function analyzeCompany(inputName) {
-  const name = normalizeName(inputName);
-  const profile = COMPANY_PROFILES[name];
-
-  if (profile) {
-    return {
-      hits: new Set(profile.hits),
-      summary: profile.summary,
-      source: "company-profile",
-    };
-  }
-
-  const matchedRules = KEYWORD_RULES.filter((rule) => rule.pattern.test(name));
-  const hits = new Set();
-
-  matchedRules.forEach((rule) => {
-    rule.hits.forEach((power) => hits.add(power));
-  });
-
-  if (hits.size === 0) {
-    ["Scale Economies", "Branding"].forEach((power) => hits.add(power));
-    return {
-      hits,
-      summary:
-        "No direct profile match was found, so this estimate uses a conservative baseline typical for large public firms.",
-      source: "baseline",
-    };
-  }
-
-  return {
-    hits,
-    summary: matchedRules[0].summary,
-    source: "keyword-rules",
-  };
-}
-
-function renderResult(companyName, analysis) {
-  resultsSection.hidden = false;
-  companyHeading.textContent = `Result for ${companyName}`;
-  summary.textContent = analysis.summary;
-  scoreValue.textContent = String(analysis.hits.size);
-
-  powerList.innerHTML = "";
-
-  POWERS.forEach((power) => {
-    const hit = analysis.hits.has(power);
-    const item = document.createElement("li");
-    item.className = `power-item ${hit ? "hit" : "miss"}`;
-
-    item.innerHTML = `
-      <span class="badge">${hit ? "✓" : "✕"}</span>
-      <div>
-        <div class="power-title">${power}</div>
-        <p class="power-reason">${POWER_REASONS[power]}</p>
-      </div>
+function createFactorInputs() {
+  FACTORS.forEach((factor) => {
+    const wrapper = document.createElement("label");
+    wrapper.className = "factor-card";
+    wrapper.innerHTML = `
+      ${factor.label}
+      <small>${factor.hint}</small>
+      <input type="range" min="1" max="5" value="3" name="${factor.key}" />
     `;
-
-    powerList.appendChild(item);
+    factorGrid.appendChild(wrapper);
   });
 }
+
+function scoreTier(score) {
+  if (score >= 75) return { text: "Strong moat", className: "strong" };
+  if (score >= 50) return { text: "Moderate moat", className: "moderate" };
+  return { text: "Weak moat", className: "weak" };
+}
+
+function analyze(formData) {
+  const sector = formData.get("sector");
+  const sectorBias = SECTOR_BIASES[sector] || {};
+
+  let total = 0;
+  const rows = FACTORS.map((factor) => {
+    const raw = Number(formData.get(factor.key));
+    const adjusted = Math.min(5, raw + (sectorBias[factor.key] || 0));
+    const weighted = (adjusted / 5) * factor.weight;
+    total += weighted;
+
+    return {
+      label: factor.label,
+      adjusted,
+      weighted: Math.round(weighted * 10) / 10,
+      status: adjusted >= 4 ? "Strong" : adjusted >= 3 ? "Moderate" : "Weak",
+    };
+  });
+
+  const score = Math.round(total);
+  const weakAreas = rows.filter((row) => row.adjusted <= 2).map((row) => row.label);
+
+  const risks = weakAreas.length
+    ? weakAreas.map((area) => `${area}: potential vulnerability if competitors invest aggressively.`)
+    : ["No obvious weak power detected from selected inputs; watch for disruption and regulation."];
+
+  const questions = [
+    "Has the company improved pricing power over the last 3-5 years?",
+    "Are customer retention and repeat behavior stable through downturns?",
+    "Can a well-funded competitor replicate the advantage within 24 months?",
+  ];
+
+  if (weakAreas.includes("Network Economies")) {
+    questions.push("Could partnerships or ecosystem integrations improve user network density?");
+  }
+
+  return { score, rows, risks, questions };
+}
+
+function render(company, result) {
+  const tier = scoreTier(result.score);
+
+  results.hidden = false;
+  companyHeading.textContent = `${company} Moat Report`;
+  overallSummary.textContent =
+    "This score combines your factor ratings with lightweight sector adjustments to estimate moat durability.";
+  moatScore.textContent = String(result.score);
+  moatTier.textContent = tier.text;
+  moatTier.className = `tier status ${tier.className}`;
+
+  powersList.innerHTML = "";
+  result.rows.forEach((row) => {
+    const li = document.createElement("li");
+    li.className = "list-item";
+    li.innerHTML = `<strong>${row.label}</strong> · <span class="status ${row.status.toLowerCase()}">${row.status}</span> (weighted contribution: ${row.weighted})`;
+    powersList.appendChild(li);
+  });
+
+  risksList.innerHTML = "";
+  result.risks.forEach((risk) => {
+    const li = document.createElement("li");
+    li.className = "list-item";
+    li.textContent = risk;
+    risksList.appendChild(li);
+  });
+
+  questionsList.innerHTML = "";
+  result.questions.forEach((question) => {
+    const li = document.createElement("li");
+    li.className = "list-item";
+    li.textContent = question;
+    questionsList.appendChild(li);
+  });
+}
+
+createFactorInputs();
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
-  const companyName = companyInput.value.trim();
-  if (!companyName) return;
+  const formData = new FormData(form);
+  const company = formData.get("company").toString().trim();
+  if (!company) return;
 
-  const analysis = analyzeCompany(companyName);
-  renderResult(companyName, analysis);
+  const result = analyze(formData);
+  render(company, result);
 });
