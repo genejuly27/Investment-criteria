@@ -3,47 +3,69 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>7 Powers of Moat Analyzer</title>
+    <title>Company Moat Analyzer</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <main class="container">
       <header>
-        <h1>7 Powers of Moat Analyzer</h1>
+        <h1>Company Moat Analyzer</h1>
         <p>
-          Enter a publicly listed company name to estimate how many of Hamilton Helmer's
-          7 powers it likely demonstrates.
+          Evaluate a company's competitive moat using Hamilton Helmer's 7 Powers,
+          then review strengths, vulnerabilities, and follow-up questions.
         </p>
       </header>
 
-      <section class="panel form-panel">
+      <section class="panel">
         <form id="moatForm" autocomplete="off">
-          <label for="companyInput">Public company name</label>
-          <div class="input-row">
-            <input
-              id="companyInput"
-              type="text"
-              name="company"
-              placeholder="e.g., Microsoft, Coca-Cola, Nvidia"
-              required
-            />
-            <button type="submit">Analyze</button>
+          <div class="grid two-col">
+            <label>
+              Company name
+              <input id="companyInput" type="text" name="company" placeholder="e.g., Microsoft" required />
+            </label>
+            <label>
+              Sector
+              <select id="sectorInput" name="sector" required>
+                <option value="">Select a sector</option>
+                <option value="software">Software / SaaS</option>
+                <option value="consumer">Consumer Brands</option>
+                <option value="industrial">Industrial / Manufacturing</option>
+                <option value="financial">Financial Services</option>
+                <option value="platform">Marketplace / Platform</option>
+                <option value="semiconductor">Semiconductor / Compute</option>
+              </select>
+            </label>
           </div>
+
+          <h2>Moat Inputs (1 = weak, 5 = strong)</h2>
+          <div id="factorGrid" class="grid factors"></div>
+
+          <button type="submit">Analyze Moat</button>
         </form>
         <p class="note">
-          Note: This tool gives an educational estimate based on broad sector/keyword
-          signals and not investment advice.
+          Educational model only — not financial or investment advice.
         </p>
       </section>
 
-      <section class="panel results-panel" id="results" hidden>
+      <section id="results" class="panel" hidden>
         <h2 id="companyHeading"></h2>
-        <p id="summary"></p>
-        <div class="score" aria-live="polite">
-          <span id="scoreValue">0</span>
-          <span>/ 7 powers</span>
+        <p id="overallSummary"></p>
+        <div class="score-wrap">
+          <div class="big-score">
+            <span id="moatScore">0</span>
+            <small>/ 100</small>
+          </div>
+          <p id="moatTier" class="tier"></p>
         </div>
-        <ul id="powerList" class="power-list"></ul>
+
+        <h3>7 Powers Assessment</h3>
+        <ul id="powersList" class="list"></ul>
+
+        <h3>Key Risks to Monitor</h3>
+        <ul id="risksList" class="list"></ul>
+
+        <h3>Suggested Research Questions</h3>
+        <ul id="questionsList" class="list"></ul>
       </section>
     </main>
 
